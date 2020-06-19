@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.sm.mapper.StudentMapper">
+<!-- 该文件的唯一标识符mapper.xml的路径 -->
+    <!-- 声明此namespacce开启二级缓存  <cache/>-->
+   
+
+    
+    
+    <select id="useSQLtip" parameterType="Object[]" resultType="thirdclass.Student">
+	    select * from students where
+	    <include refid="ObjectArray"></include>
+	</select>
+	
+    <sql id="ObjectArray">
+        <if test="array!=null and array.length>0">
+		    <foreach collection="array" open=" stuNo in (" close=")" item="student" separator=",">
+		    	#{student.stuNo}
+		    </foreach>
+	</if>
+    </sql>
+    
+    <!-- parameterType为输入参数的类型  resultType查询后返回结果的值的类型 -->
+    <!-- 如果输入是简单类型（8种基本类型+String）可以使用任意的占位符 #{xxx} 是
+                           如果输入是对象类型，则必须是对象的属性 #{属性名}例如增加操作输入的是对象类型-->
+	<select id="selectByNo" resultType="thirdclass.Student" parameterType="int">
+		select * from students where stuNo = #{stuNo}
+		<!-- 简单类型的输入#{任意的名称}或者${value} 
+		select * from student where stuNo = #{任意名}
+		select * from student where stuNo = ${value}-->
+	</select>
+	
+	<!-- 查询学生个数 -->
+	<select id="selectStudentCount" resultType="int">
+	    select count(*) from students
+	</select>
+	
+	<!-- 输出类型为HashMap,别名"No" "Name“ 别名作为Map的key -->
+	<select id="selectStudentOutHashMap" resultType="HashMap">
+	    select stuNo "No",stuName "Name" from students where stuNo=226
+	</select>
+	
+	<!-- 带sql标签的动态sql查询 -->
+	<select id="selectWithSqlTag" resultType="thirdclass.Student" parameterType="thirdclass.Student">
+	    select stuNo from students where
+	    <!-- 如果只输入一个值，则可以 select stuNo from students where 1=1  表示永远成立-->
+	    <!-- test中写student中的具体的属性    底下定义了不能为空 -->
+	    <if test="stuName!=null and stuName!=''">
+	        stuName=#{stuName}
+	    </if> 
+	    <if test="stuAge!=null and stuAge!=''">
+	        and stuAge=#{stuAge}
+	    </if> 
+	</select>
+	
+	<!-- 一次查询多个学生，使用foreach ，属性方式-->
+	<select id="selectWithForeach" parameterType="thirdclass.Grade" resultType="thirdclass.Student">
+	    select * from students where
+	    <if test="stuNos!=null and stuNos.size>0">
+	        <!-- collection写在类中定义的集合 ，主体中写要循环执行的集合，open和close定义开始和结束的位置   -->
+	        <!-- for[String name;[names]] 可以随便起名，item="stuNo"相当于集合stuNos集合的每一个元素-->
+	        <!-- separator 分隔符     表示数据（222226322）中间用什么分隔符隔开-->
+	        <!-- select * from students where
+	                                       加open: select * from students wherestuNo in (,所以要在open中加一个空格
+	                                       加item: select * from students wherestuNo in (222226322
+	                                       加close: select * from students wherestuNo in (222226322)
+	                                       最终select * from students wherestuNo in (222,226,322)
+ 	         -->
+		    <foreach collection="stuNos" open=" stuNo in (" close=")" item="stuNo" separator=",">
+		    	#{stuNo}
+		    </foreach>
+	</if>  
+	</select>
+	
+	<!-- 一次查询多个学生，使用foreach 数组方式 int[] Nos={226,222,322}  数组的话collection，test都用array-->
+	<select id="selectWithArray" parameterType="int[]" resultType="thirdclass.Student">
+	    select * from students where
+	    <if test="array!=null and array.length>0">
+	        <!-- collection写在类中定义的集合 ，主体中写要循环执行的集合，open和close定义开始和结束的位置   -->
+	        <!-- for[String name;[names]] 可以随便起名，item="stuNo"相当于集合stuNos集合的每一个元素-->
+	        <!-- separator 分隔符     表示数据（222226322）中间用什么分隔符隔开-->
+	        <!-- select * from students where
+	                                       加open: select * from students wherestuNo in (,所以要在open中加一个空格
+	                                       加item: select * from students wherestuNo in (222226322
+	                                       加close: select * from students wherestuNo in (222226322)
+	                                       最终select * from students wherestuNo in (222,226,322)
+ 	         -->
+		    <foreach collection="array" open=" stuNo in (" close=")" item="stuNo" separator=",">
+		    	#{stuNo}
+		    </foreach>
+	</if>  
+	</select>
+	
+	
+	<!-- 一次查询多个学生，使用foreach 集合方式，无论传递什么参数， xml文件中都用List来代替 List<Integer> Nos值是{226,222,322} -->
+	<select id="selectWithList" parameterType="list" resultType="thirdclass.Student">
+	    select * from students where
+	    <if test="list!=null and list.size>0">
+		    <foreach collection="list" open=" stuNo in (" close=")" item="stuNo" separator=",">
+		    	#{stuNo}
+		    </foreach>
+	</if>  
+	</select>
+	
+	
+	<!-- 一次查询多个学生，对象数组方式，将多个元素放入对象数组中，对象数组也是数组，所以也用array 
+	     ||Student[] students=new Student[] {stu0,stu1,stu2}; 对象数组parameterType必须使用Object[]-->
+	<select id="selectWithTargetList" parameterType="Object[]" resultType="thirdclass.Student">
+	    select * from students where
+	    <if test="array!=null and array.length>0">
+		    <foreach collection="array" open=" stuNo in (" close=")" item="student" separator=",">
+		    	#{student.stuNo}
+		    </foreach>
+	</if>  
+	</select>
+	
+	<!-- 使用hashmap输出多个学生的多个对象 -->
+	<select id="selectAllStudentHashMap" resultType="HashMap">
+	    select stuNo "No",stuName "Name" from students 
+	</select>
+	
+	<!--  实体类的属性和数据表的字段名不一致，sql中的属性是No，Name resultMap方式-->
+	<!--<select id="selectStudentmap" resultMap="int" parameterType="id">
+	    select No,Name from students where id=#{id}
+	</select>
+	 <resultMap type="thirdclass.Student" id=""selectStudentmap"">
+	                             指定类中的属性和表中的字段对应关系,id用主键，非主键用result
+	    <id property="stuNo" column="id"/>
+	    <result property="stuName" column="name"/>
+	</resultMap> -->
+	
+	<!-- resultType+HashMap方式  直接将表的字段名和类的属性建立联系No(表的属性) "stuNo"(类的属性)-->
+	<!--<select id="selectAllStudentWithHashMap" resultType="HashMap" parameterType="int">
+	    select No "stuNo",Name "stuName" from students where id=#{id}
+	</select>-->
+	
+	<!-- 查询学生，根据名字静态排序 -->
+	<select id="selectStudentOrderByName" resultType="thirdclass.Student" >
+		select stuNo,stuName,stuClass,stuAge from students order by stuName desc
+		<!-- 静态排序，后面只能根据stuName来排序，不可更改 ，动态排序就是根据什么排序不一定，后期可选-->
+	</select>
+	
+	<!-- 查询学生，根据某个名字动态排序  排序的时候desc是降序，asc是升序 -->
+	<select id="selectStudentOrderByColumn" resultType="thirdclass.Student" parameterType="String">
+		select stuNo,stuName,stuClass,stuAge from students order by ${column}  desc
+	</select>
+	
+	<!--  关联查询,业务扩展方式 ,sql中要加入两张表-->
+	<select id="selectConnection" parameterType="int" resultType="thirdclass.StudentWithCard">
+	    select s.*,c.* from students s inner join studentCard c
+	    on s.cardId=c.cardId
+	    where s.stuNo=#{stuNo} 	
+	</select>
+	
+	<!-- 利用mybatis提供的resultmap实现一对一关联查询 ,不用新建类，直接接收两个表传回的值-->
+    <select id="selectConnectionWithresultMap" parameterType="int" resultMap="studentcard_map">
+	    select s.*,c.* from students s inner join studentCard c
+	    on s.cardId=c.cardId
+	    where s.stuNo=#{stuNo} 	
+	</select>	
+	<!-- type就是接受两个表返回值的类型    学生类就包含了学生信息和学生证信息 -->
+	<resultMap type="thirdclass.Student" id="studentcard_map">
+	     <!-- 学生的信息      主键用id，其他用result  property是java中的属性，column是sql中的列名 建立联系 -->
+	     <id property="stuNo" column="stuNo"/>
+	     <result property="stuAge" column="stuAge"/>
+	     <result property="stuName" column="stuName"/>
+	     
+	     <!--学生证信息   学生证是对象类型 ,一对一用association，一对多用collection  javaType指定property="cardId"是什么类型的-->
+	     <association property="studentCard" javaType="thirdclass.StudentCard">
+	          <id property="cardId" column="cardId"/>
+	          <result property="cardInfo" column="cardInfo"/>
+	     </association>
+	</resultMap>
+	
+	<!-- 一对多关联查询 -->
+	<select id="selectOneToMany" parameterType="int" resultMap="OneToMany">
+	    <!-- 查询111班的所有学生 -->
+	    select c.*,s.* from students s inner join studentClass c
+	    on s.classId = C.classId
+	    where c.classId = #{classId}
+	</select>
+	<!-- Map中存放类和表的对应关系 -->
+	<resultMap type="thirdclass.StudentClass" id="OneToMany">
+	    <!-- 主类是班级，先配置班级 -->
+	    <id property="classId" column="classId"/>
+	    <result property="className" column="className"/>
+	    <!-- 配置成员属性学生    描述属性类型用javaType，描述属性的元素类型用ofType-->
+	        <collection property="students" ofType="thirdclass.Student">
+	             <id property="stuNo" column="stuNo"/>
+	             <result property="stuAge" column="stuAge"/>
+	             <result property="stuName" column="stuName"/>
+	                 <!-- 可以继续配置student中的card类 -->
+	        </collection>
+	</resultMap>
+	
+	<!-- 带延迟加载的一对一关联查询 -->
+    <select id="selectWithLazyload" parameterType="int" resultMap="studentcardWithLazyload">
+	     <!-- 先查学生 -->
+	     select * from students
+	</select>	
+	<!-- type就是接受两个表返回值的类型    学生类就包含了学生信息和学生证信息 -->
+	<resultMap type="thirdclass.Student" id="studentcardWithLazyload">
+	     <!-- 学生的信息      主键用id，其他用result  property是java中的属性，column是sql中的列名 建立联系 -->
+	     <id property="stuNo" column="stuNo"/>
+	     <result property="stuAge" column="stuAge"/>
+	     <result property="stuName" column="stuName"/>
+	     <!--学生证信息   学生证是对象类型 ,一对一用association，一对多用collection  javaType指定property="cardId"是什么类型的
+	                           采用延迟加载，查询学生时并不立即查询学生证信息，需要的时候再通过select查询
+	                           延迟加载在association中写，但是还得建立一个mapper.xml  根据学生证查询学生的标识符: mapper.StudentCardMapper.selectStudentCard,
+	                           将这个标识符放入config中主语句的select中    colunm中写将两张表关联起来的外键名     例如cardId-->
+	     <association property="studentCard" javaType="thirdclass.StudentCard" select="mapper.StudentCardMapper.selectStudentCard" column="cardId">
+	          <!--<id property="cardId" column="cardId"/>
+	          <result property="cardInfo" column="cardInfo"/>立即加载的方式 -->
+	     </association>
+	</resultMap>
+	
+
+	
+	<!-- 带延迟加载的一对多关联查询 -->
+	<select id="selectOneToManyWithLazyLoad"  resultMap="OneToManyWithLazyLoad">
+	    <!-- 查询全部班级 -->
+	    select * from studentClass 
+	</select>
+	<!-- Map中存放类和表的对应关系 -->
+	<resultMap type="thirdclass.StudentClass" id="OneToManyWithLazyLoad">
+	    <!-- 主类是班级，先配置班级 -->
+	    <id property="classId" column="classId"/>
+	    <result property="className" column="className"/>
+	    <!-- 配置成员属性学生    描述属性类型用javaType，描述属性的元素类型用ofType-->
+	        <collection property="students" ofType="thirdclass.Student" select="mapper.StudentClassMapper.selectStudent" column="classId">
+	             
+	             <!--<id property="stuNo" column="stuNo"/>
+	             <result property="stuAge" column="stuAge"/>
+	             <result property="stuName" column="stuName"/>立即查询方式-->
+	        </collection>
+	</resultMap>
+	
+	
+	<!-- 模糊查询只要名字中包含输入的字符都输出         模糊查询的属性一定要加%%-->
+	<!-- 根据名字或者学号查找学生    输入lj，226 输入的是一个学生对象，所以 parameterType="thirdclass.Student"-->
+	<select id="selectStudentBystuNameOrstuAge" resultType="thirdclass.Student" parameterType="thirdclass.Student">
+		select stuNo,stuName,stuClass,stuAge from students where stuName=#{stuName} or stuAge=#{stuAge}
+	</select>
+	<!-- 使用hashMap的方式 -->
+	<select id="selectStudentBystuNameOrstuAgeWithHashMap" resultType="thirdclass.Student" parameterType="HashMap">
+		select stuNo,stuName,stuClass,stuAge from students where stuName=#{stuName} or stuAge=#{stuAge}
+	</select>
+	
+	<!-- 查询嵌套属性address ，输入是地址-->
+	<select id="selectStudentByAddress" resultType="thirdclass.Student" parameterType="thirdclass.Address">
+		select stuNo,stuName,stuClass,stuAge from students where homeaddress=#{homeaddress} or schooladdress=#{schooladdress}
+		<!--select stuNo,stuName,stuClass,stuAge from students where homeaddress='${}' or schooladdress='${}'  -->
+	</select>
+	
+	<!-- 查询嵌套属性address ，输入是级联属性（学生关联的address）-->
+	<select id="selectStudentByAddress2" resultType="thirdclass.Student" parameterType="thirdclass.Student">
+		select stuNo,stuName,stuClass,stuAge from students where homeaddress=#{address.homeaddress} or schooladdress=#{address.schooladdress}
+		<!--select stuNo,stuName,stuClass,stuAge from students where homeaddress='${address.homeaddress}' or schooladdress='${address.schooladdress}'  -->
+	</select>
+	
+	<!-- 通过调用存储过程，实现查询 ,使用statementType="CALLABLE"指明调用的是存储过程  querystudentByGrade就是在mysql中定义的存储过程,
+	然后在querystudentByGrade()中写mysql中定义的参数及其在数据库中的数据类型,mode中指明是输入还是输出参数,输入参数在mybatis中用Map(hashmap)来传递,但是并没有返回值-->
+	<select id="querystudentByGrade" statementType="CALLABLE" parameterType="HashMap">
+	{
+	    CALL querystudentByGrade( 
+	                              #{grade,jdbcType=VARCHAR,mode=IN},
+	                              #{scount,jdbcType=INTEGER,mode=OUT}
+	                             )
+	}
+	</select>
+	
+	
+	<!-- 使用了类型转换器的查询一个
+	使用转换器，如果类中的属性和表中的字段类型能偶相互识别（string-varchar），则使用resulttype，不过两者类型不同(boolean-integer)，则使用resultmap
+	如果类中的属性名和表中的字段名能一一对应（stuNo-stuNo）则可以使用resulttype；如果类型名（stuNo-id）不同，则使用resultmap
+	使用resultmap要写resultmap，Map的type还是resultType的“student”,先给id定名，然后id的名字传回给resultMap
+	 -->
+	 
+	<select id="selectOne" resultMap="studentResult" parameterType="int">
+		select * from students where stuNo = #{stuNo}
+	</select>
+	
+	<resultMap type="thirdclass.Student" id="studentResult">
+	     <!-- 在这里写使用了转换器的返回类型，分为主键和非主键，主键用id,非主键用result，property写java中的属性名
+	     column写sql中的列名，将两者对应起来,在用到类型转换器的列写javatype和jdbctype-->
+	    <id property="stuNo" column="stuNo" />
+	    <result property="stuName" column="stuName" />
+		<result property="stuAge" column="stuAge"/>
+		<result property="stuClass" column="stuClass"/>
+		<result property="stuSex" column="stuSex" javaType="boolean" jdbcType="INTEGER"/>
+	</resultMap>
+	
+	<delete id="deleteByNo" parameterType="int">
+	    delete from students where stuNo = #{stuNo}
+	</delete>
+	
+	
+	<insert id="insertStudent" parameterType="thirdclass.Student">
+	    insert into students values(#{stuNo},#{stuName},#{stuAge},#{stuClass})
+	</insert>
+	
+	<!-- 带类型转换器的增加 直接在要转换类型的属性后加上转换前后的类型-->
+	<insert id="insertWithConverter" parameterType="thirdclass.Student">
+	    insert into students values(#{stuAge},#{stuNo},#{stuName},#{stuSex ,javaType=boolean ,jdbcType=INTEGER },#{stuClass})
+	</insert>
+	
+	<update id="updateByNo" parameterType="thirdclass.Student">
+	    update students set stuName=#{stuName},stuAge=#{stuAge},stuClass=#{stuClass} where stuNo = #{stuNo}
+	</update>
+	
+	<select id="selectAll" resultType="thirdclass.Student">
+	    select * from students
+	</select>
+</mapper>

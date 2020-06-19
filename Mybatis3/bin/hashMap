@@ -1,0 +1,66 @@
+
+
+select stuNo,stuName,stuClass,stuAge from students where stuName=#{stuName} or stuAge=#{stuAge}
+HashMap<key,value>  key就是你要输入的sql属性，匹配personmapper中的占位符stuName，stuAge。value是具体的值
+普通写法:
+
+  personMapper:
+    <!-- 模糊查询只要名字中包含输入的字符都输出         模糊查询的属性一定要加%%-->
+	<!-- 根据名字或者学号查找学生    输入lj，226 输入的是一个学生对象，所以 parameterType="thirdclass.Student"-->
+	<select id="selectStudentBystuNameOrstuAge" resultType="thirdclass.Student" parameterType="thirdclass.Student">
+		select stuNo,stuName,stuClass,stuAge from students where stuName=#{stuName} or stuAge=#{stuAge}
+	</select>
+	
+	使用hashMap:
+	<!-- 使用hashMap的方式 -->
+	<select id="selectStudentBystuNameOrstuAgeWithHashMap" resultType="thirdclass.Student" parameterType="HashMap">
+		select stuNo,stuName,stuClass,stuAge from students where stuName=#{stuName} or stuAge=#{stuAge}
+	</select>
+  
+  
+  
+  
+  
+  
+  
+  studentMapper:
+  	            List<Student> selectStudentBystuNameOrstuAge(Student student);//根据学号和姓名查学生
+                            使用hashMap:
+          	    List<Student> selectStudentBystuNameOrstuAgeWithHashMap(HashMap<String,Object> map);//String , Object
+  
+  
+  
+  
+  
+  
+  
+  
+  test:
+  				public static void selectStudentBystuNameOrstuAge() throws IOException {
+				Reader reader = Resources.getResourceAsReader("config.xml");
+				SqlSessionFactory sessionFactory=new SqlSessionFactoryBuilder().build(reader);
+				SqlSession session=sessionFactory.openSession();
+				StudentMapper studentMapper=session.getMapper(StudentMapper.class);
+				Student student=new Student();
+				student.setStuAge(22);
+				student.setStuName("%l%");
+				List<Student> students=studentMapper.selectStudentBystuNameOrstuAge(student);//接口中的方法
+				System.out.println(students);	
+				session.close();
+					}
+  		
+  
+                            使用hashMap:
+               public static void selectStudentBystuNameOrstuAgeWithHashMap() throws IOException {
+		        Reader reader = Resources.getResourceAsReader("config.xml");
+		        SqlSessionFactory sessionFactory=new SqlSessionFactoryBuilder().build(reader);
+		        SqlSession session=sessionFactory.openSession();
+		        StudentMapper studentMapper=session.getMapper(StudentMapper.class);
+		        HashMap<String,Object> studentMap=new HashMap<>();
+		        studentMap.put("stuName", "lj"); 
+		        studentMap.put("stuAge", 2);
+		        List<Student> students=studentMapper.selectStudentBystuNameOrstuAgeWithHashMap (studentMap);//接口中的方法
+		        System.out.println(students);	
+		        session.close();
+	                }
+	

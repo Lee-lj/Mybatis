@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.StudentCardMapper">
+    
+    
+    <!-- 查询学生证信息 -->
+    <select id="selectStudentCard" parameterType="int" resultType="thirdclass.StudentCard">
+          select * from studentCard where cardId=#{cardId}
+    </select>
+    <!-- 根据学生证查询学生的标识符: mapper.StudentCardMapper.selectStudentCard,将这个标识符放入config中主语句的select中-->
+
+</mapper>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.StudentClassMapper">
+         <!-- 查询学生 -->
+         <select id="selectStudent" parameterType="int" resultType="thirdclass.Student">
+               select * from students where classId=#{classId}
+         
+         </select>
+         <!-- 标识符:mapper.StudentClassMapper.selectStudent -->
+
+
+
+
+</mapper>

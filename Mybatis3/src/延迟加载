@@ -1,0 +1,138 @@
+延迟加载（懒加载）步骤:
+              1.在config。xml中开启延迟加载，关闭立即加载:
+                                    <settings>
+	                                       <!-- 开启延迟加载 -->
+	                                       <setting name="lazyLoadingEnabled" value="true"/>
+	                                       <!-- 关闭立即加载 -->
+	                                       <setting name="aggressiveLazyLoading" value="false"/>
+	                                </settings>
+	          2.新建根据需要才查询的Mapper.XML:
+	                                <!-- 查询学生 -->
+                                    <select id="selectStudent" parameterType="int" resultType="thirdclass.Student">
+                                          select * from students where classId=#{classId}
+                                    </select>
+                                    <!-- 标识符:mapper.StudentClassMapper.selectStudent -->
+                                    
+	          3.在config.xml的mappers中加入根据需要才查询的mapper。xml的绝对路径:
+	                                <mappers>
+		                            <mapper resource="mapper/StudentCardMapper.xml" />
+		                            <mapper resource="mapper/StudentClassMapper.xml"/>
+	                                </mappers>    
+	          4.在主mapper.xml中写首先查询的sql，并将首先查询和根据需要查询的java属性和sql中的列名一一建立关联，然后建立首先查询和根据需要查询的联系<collection>,一对一关联用association，一对多用collection
+	                               collection/association的select中写根据需要查询的sql语句的绝对路径mapper.StudentClassMapper(xml文件名).selectStudent(方法名)
+	                                                                                            最后column中写将两张表关联起来的外键名:                 
+	                                <select id="selectOneToManyWithLazyLoad"  resultMap="OneToManyWithLazyLoad">
+	                                    <!-- 查询全部班级 -->
+	                                    select * from studentClass 
+	                                </select>
+	                                <!-- Map中存放类和表的对应关系 -->
+	                                <resultMap type="thirdclass.StudentClass" id="OneToManyWithLazyLoad">
+	                                    <!-- 主类是班级，先配置班级 -->
+	                                    <id property="classId" column="classId"/>
+	                                    <result property="className" column="className"/>
+	                                    <!-- 配置成员属性学生    描述属性类型用javaType，描述属性的元素类型用ofType-->
+	                                        <collection property="students" ofType="thirdclass.Student" select="mapper.StudentClassMapper.selectStudent" column="classId">
+	                                        </collection>
+	                                </resultMap>
+               5.在Mybatis的接口中添加方法
+               6.测试，完成
+
+一对一、一对多、多对一、多对多
+例如一对多：班级-学生 ，
+如果不采用延迟加载  （立即加载），查询时会将 一 和多 都查询:班级、班级中的所有学生。
+如果想要 暂时只查询1的一方，  而多的一方 先不查询 而是在需要的时候再去查询 这就是延迟加载（提高了效率）
+
+               一对一:
+                          例如学生证和学生之间的关系：
+                          tips:要在config.xml中开启延迟加载，并且在config中加入mappers的路径:
+                                    <mappers>
+		                            <mapper resource="mapper/StudentCardMapper.xml" />
+	                                </mappers>
+                                 mybatis中使用延迟加载，需要先配置：
+	                             <settings>
+	                             	<!-- 开启延迟加载 -->
+	                             	<setting name="lazyLoadingEnabled" value="true"/>
+	                             	<!-- 关闭立即加载 -->
+	                             	<setting name="aggressiveLazyLoading" value="false"/>
+	                             </settings>
+
+                                                                                                     如果增加了mapper.xml ,要修改conf.xml配置文件（将新增的mapper.xml加载进去）
+                                                                                                     通过debug可以发现， 如果程序只需要学生，则只向数据库发送了查询学生的SQL；
+                                                                                                     当我们后续 需要用到学生证的时候，再第二次发送 查询学生证的SQL。
+                          
+                          
+                          PersonMapper。xml:
+                                     <!-- 带延迟加载的一对一关联查询 -->
+                                     <select id="selectWithLazyload" parameterType="int" resultMap="studentcardWithLazyload">
+	                                     <!-- 先查学生 -->
+	                                     select * from students	
+	                                 </select>	
+	                                 <!-- type就是接受两个表返回值的类型    学生类就包含了学生信息和学生证信息 -->
+	                                 <resultMap type="thirdclass.Student" id="studentcardWithLazyload">
+	                                      <!-- 学生的信息      主键用id，其他用result  property是java中的属性，column是sql中的列名 建立联系 -->
+	                                      <id property="stuNo" column="stuNo"/>
+	                                      <result property="stuAge" column="stuAge"/>
+	                                      <result property="stuName" column="stuName"/>
+	                                      <!--学生证信息   学生证是对象类型 ,一对一用association，一对多用collection  javaType指定property="cardId"是什么类型的
+	                                                                                                                              采用延迟加载，查询学生时并不立即查询学生证信息，需要的时候再通过select查询
+	                                                                                                                              延迟加载在association中写，但是还得建立一个mapper.xml  根据学生证查询学生的标识符: mapper.StudentCardMapper.selectStudentCard,
+	                                                                                                                              将这个标识符放入config中主语句的select中    colunm中写将两张表关联起来的外键名     例如cardId-->
+	                                      <association property="studentCard" javaType="thirdclass.StudentCard" select="mapper.StudentCardMapper.selectStudentCard" column="cardId">
+	                                           <!--<id property="cardId" column="cardId"/>
+	                                           <result property="cardInfo" column="cardInfo"/>立即加载的方式 -->
+	                                      </association>
+	                                 </resultMap>
+	                                 
+	                       StudentCardMapper.xml:
+	                                 <!-- 查询学生证信息 -->
+                                     <select id="selectStudentCard" parameterType="int" resultType="thirdclass.StudentCard">
+                                           select * from studentCard where cardId=#{cardId}
+                                     </select>
+                                     <!-- 根据学生证查询学生的标识符: mapper.StudentCardMapper.selectStudentCard,将这个标识符放入config中主语句的select中-->
+	                       
+                       一对多:
+                       和一对一的配置方法相同（班级映射学生）:
+              studentClassMapper.xml:<!-- 查询学生证信息 -->
+                                     <select id="selectStudentCard" parameterType="int" resultType="thirdclass.StudentCard">
+                                     select * from studentCard where cardId=#{cardId}
+                                     </select>
+                                     <!-- 根据学生证查询学生的标识符: mapper.StudentCardMapper.selectStudentCard,将这个标识符放入config中主语句的select中-->         
+                       
+                                          主Mapper.xml:           <!-- 带延迟加载的一对多关联查询 -->
+	                                 <select id="selectOneToManyWithLazyLoad"  resultMap="OneToManyWithLazyLoad">
+	                                     <!-- 查询全部班级 -->
+	                                     select * from studentClass 
+	                                 </select>
+	                                 <!-- Map中存放类和表的对应关系 -->
+	                                 <resultMap type="thirdclass.StudentClass" id="OneToManyWithLazyLoad">
+	                                     <!-- 主类是班级，先配置班级 -->
+	                                     <id property="classId" column="classId"/>
+	                                     <result property="className" column="className"/>
+	                                     <!-- 配置成员属性学生    描述属性类型用javaType，描述属性的元素类型用ofType-->
+	                                         <collection property="students" ofType="thirdclass.Student" select="mapper.StudentClassMapper.selectStudent" column="classId">
+	                                              <!--<id property="stuNo" column="stuNo"/>
+	                                              <result property="stuAge" column="stuAge"/>
+	                                              <result property="stuName" column="stuName"/>立即查询方式-->
+	                                         </collection>
+	                                 </resultMap>         
+                       
+              test:         //带延迟加载的一对多，先查班级然后查班级中的学生
+                            public static void selectOneToManyWithLazyLoad() throws IOException {
+		                    	Reader reader = Resources.getResourceAsReader("config.xml");
+		                    	SqlSessionFactory sessionFactory=new SqlSessionFactoryBuilder().build(reader);
+		                    	SqlSession session=sessionFactory.openSession();
+	                            StudentMapper studentMapper=session.getMapper(StudentMapper.class);
+	                            //全部班级
+                                List<StudentClass> studentClass=studentMapper.selectOneToManyWithLazyLoad();
+                                //遍历
+	                                for(StudentClass stuclass:studentClass) {
+	                                	System.out.println(stuclass.getClassId()+";"+stuclass.getClassName());
+	                                	//遍历输出班级中的全部学生
+	                                	for(Student stu:stuclass.getStudents()) {
+	                                		System.out.println(stu.getStuNo()+";"+stu.getStuName()+";"+stu.getStuAge());
+	                                	}
+	                                }
+	                            session.close();
+		                    }
+
+
