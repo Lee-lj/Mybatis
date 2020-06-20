@@ -1,0 +1,29 @@
+常见日志的分类:
+SLF4J;Apache Commons Logging；Log4j 2;Log4j;JDK Logging 
+          Log4j: 1.先在Mybatis。zip的lib中导入Log4J.jar
+                 2.开启日志   在config.xml的properties之后setting进行配置
+                        <settings>
+                        <!-- 开启日志，并指定使用的具体日志    value="log4j"指定了使用的Log4j.properties -->
+                        <setting name="LogImpl" value="Log4j"/>
+                        </settings>
+                        
+                        tips:如果不指定，会按照SLF4J;Apache Commons Logging；Log4j 2;Log4j;JDK Logging顺序依次寻找日志
+                 
+                 3.编写配置日志输出文件:在根目录src建立Log4j.properties 的file文件
+                 
+                           log4j.rootLogger=DEBUG（设置日志级别）, stdout（日志在哪里输出，stdout就是在控制台输出）
+                           log4j.appender.stdout=org.apache.log4j.ConsoleAppender（日志在哪里显示的方式）
+                           log4j.appender.stdout.layout=org.apache.log4j.PatternLayout（日志的显示方式:平铺还是等等）
+                           log4j.appender.stdout.layout.ConversionPattern=%5p [%t] - %m%n
+                 
+                                                                                           日志级别：
+	                          DEBUG（调试）<INFO（提示）<WARN（警告）<ERROR（错误）
+	                                                                              如果设置为DEBUG，则显示DEBUG及以上级别的信息
+                                                                                          如果设置为info，则只显示 info及以上级别的信息；低等级的信息会被忽略
+                                                                                          建议：在开发时设置debug，在运行时设置为info或以上。
+                       
+                       Log4j.properties一般只需改动日志级别，其他的不用改动        
+                       
+                                                                    可以通过日志信息，详细的阅读mybatis执行情况（ 观察mybatis实际执行sql语句 以及SQL中的参数 和返回结果）                                                           
+                                                                                          
+                                                                                      
